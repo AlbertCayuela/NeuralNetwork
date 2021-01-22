@@ -27,11 +27,23 @@ public class GameRun : MonoBehaviour
 
 	// Other UI elements
 	private UnityEngine.UI.Text textDeck;
+    private UnityEngine.UI.Text textTurn;
+    private UnityEngine.UI.Text textRes;
+    private UnityEngine.UI.Text textScore;
+    private UnityEngine.UI.Text textGames;
+    private UnityEngine.UI.Text textGameScores;
+
+    private float score;
+    private string reward_string;
+    private float winRounds;
+    private float winGame;
+    private float currentTurn;
+    private float currentGame;
 
     // Start is called before the first frame update
     void Start()
     {
-
+        currentGame = 1;
 
         ///////////////////////////////////////
         // Sprite management
@@ -47,6 +59,11 @@ public class GameRun : MonoBehaviour
         // UI management
         ///////////////////////////////////////
         textDeck = GameObject.Find("TextDeck").GetComponent<UnityEngine.UI.Text>();
+        textTurn = GameObject.Find("TextTurns").GetComponent<UnityEngine.UI.Text>();
+        textRes = GameObject.Find("TextResult").GetComponent<UnityEngine.UI.Text>();
+        textScore = GameObject.Find("TextScore").GetComponent<UnityEngine.UI.Text>();
+        textGames = GameObject.Find("TextCurrentGames").GetComponent<UnityEngine.UI.Text>();
+        textGameScores = GameObject.Find("TextGames").GetComponent<UnityEngine.UI.Text>();
 
 
         ///////////////////////////////////////
@@ -98,7 +115,7 @@ public class GameRun : MonoBehaviour
    	  	// Determine label of the character, return it
    	  	int label = 0;
    	  	if(chars[idx].name.StartsWith("frog")) label = 1;
-   	  	else if(chars[idx].name.StartsWith("opposum")) label = 2;
+   	  	else if(chars[idx].name.StartsWith("opossum")) label = 2;
 
     	return label;
     } 
@@ -158,6 +175,46 @@ public class GameRun : MonoBehaviour
 
 	        agent.GetReward(reward);
 
+            score += reward;
+            if (reward == 1)
+            {
+                reward_string = "WIN";
+                winRounds++;
+            }
+            else if (reward == -2)
+            {
+                reward_string = "LOSE";
+            }
+            else if (reward == -0.1f)
+            {
+                reward_string = "DRAW";
+            }
+
+            if(currentTurn % 15 == 0)
+            {
+                if(winRounds >= 8)
+                {
+                    winGame++;
+                }
+
+                winRounds = 0;
+            }
+
+            currentTurn++;
+
+
+            textTurn.text = "Turn: " + currentTurn.ToString();
+            textRes.text = "Result: " + reward_string;
+            textScore.text = "AI Score: " + score.ToString();
+            textGameScores.text = "Games Won: " + winGame.ToString();
+            textGames.text = "Current Game: " + currentGame.ToString();
+
+            if(currentTurn % 15 == 0)
+            {
+                currentTurn = 0;
+                currentGame++;
+            }
+                
 
 	        ///////////////////////////////////////
 	        // Manage turns/games
