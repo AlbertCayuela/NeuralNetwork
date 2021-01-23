@@ -12,10 +12,14 @@ public class GameRun : MonoBehaviour
 
 	// Game management
 	private GameObject enemyCards;
-	private int [] enemyChars;	
+    private GameObject playerCards;
+	private int [] enemyChars;
+    private int[] playerChars;
 	private Agent agent;
+    private int[] sprites = { 1, 6, 12 };
 
 	private int NUM_ENEMY_CARDS = 3;
+    private int NUM_PLAYER_CARDS = 3;
 	private int NUM_CLASSES     = 3;
 	private int DECK_SIZE       = 4;
 
@@ -29,9 +33,11 @@ public class GameRun : MonoBehaviour
 	private UnityEngine.UI.Text textDeck;
     private UnityEngine.UI.Text textTurn;
     private UnityEngine.UI.Text textRes;
-    private UnityEngine.UI.Text textScore;
+    //private UnityEngine.UI.Text textScore;
     private UnityEngine.UI.Text textGames;
     private UnityEngine.UI.Text textGameScores;
+    private UnityEngine.UI.Text textWonTurns;
+    private UnityEngine.UI.Text textLostTurns;
 
     private float score;
     private string reward_string;
@@ -39,11 +45,15 @@ public class GameRun : MonoBehaviour
     private float winGame;
     private float currentTurn;
     private float currentGame;
+    private float wonTurns;
+    private float lostTurns;
 
     // Start is called before the first frame update
     void Start()
     {
         currentGame = 1;
+        wonTurns = 0;
+        lostTurns = 0;
 
         ///////////////////////////////////////
         // Sprite management
@@ -61,9 +71,11 @@ public class GameRun : MonoBehaviour
         textDeck = GameObject.Find("TextDeck").GetComponent<UnityEngine.UI.Text>();
         textTurn = GameObject.Find("TextTurns").GetComponent<UnityEngine.UI.Text>();
         textRes = GameObject.Find("TextResult").GetComponent<UnityEngine.UI.Text>();
-        textScore = GameObject.Find("TextScore").GetComponent<UnityEngine.UI.Text>();
+        //textScore = GameObject.Find("TextScore").GetComponent<UnityEngine.UI.Text>();
         textGames = GameObject.Find("TextCurrentGames").GetComponent<UnityEngine.UI.Text>();
         textGameScores = GameObject.Find("TextGames").GetComponent<UnityEngine.UI.Text>();
+        textWonTurns = GameObject.Find("TextWonTurns").GetComponent<UnityEngine.UI.Text>();
+        textLostTurns = GameObject.Find("TextLostTurns").GetComponent<UnityEngine.UI.Text>();
 
 
         ///////////////////////////////////////
@@ -71,6 +83,9 @@ public class GameRun : MonoBehaviour
         ///////////////////////////////////////
         enemyCards = GameObject.Find("EnemyCards");
         enemyChars = new int[NUM_ENEMY_CARDS];
+
+        playerCards = GameObject.Find("PlayerCards");
+        playerChars = new int[NUM_PLAYER_CARDS];
 
         agent      = GameObject.Find("AgentManager").GetComponent<Agent>();
 
@@ -158,6 +173,18 @@ public class GameRun : MonoBehaviour
 	        yield return new WaitForEndOfFrame();
 
 	        int [] action = agent.Play(deck, enemyChars);
+            int b = 0;
+            foreach(Transform card in playerCards.transform)
+            {
+                foreach(Transform sprite in card)
+                {
+                    Destroy(sprite.gameObject);
+                }
+                int idx = Random.Range(0, backgrounds.Length);
+                Instantiate(backgrounds[idx], card.transform.position, Quaternion.identity, card.transform);
+                Instantiate(chars[sprites[action[b]]], card.transform.position + new Vector3(0, 0, -1), Quaternion.identity, card.transform);
+                b++;
+            }
 
 	        textDeck.text += " Action:";
 	        foreach(int a in action)
@@ -180,10 +207,12 @@ public class GameRun : MonoBehaviour
             {
                 reward_string = "WIN";
                 winRounds++;
+                wonTurns++;
             }
-            else if (reward == -2)
+            else if (reward == -1)
             {
                 reward_string = "LOSE";
+                lostTurns++;
             }
             else if (reward == -0.1f)
             {
@@ -205,9 +234,11 @@ public class GameRun : MonoBehaviour
 
             textTurn.text = "Turn: " + currentTurn.ToString();
             textRes.text = "Result: " + reward_string;
-            textScore.text = "AI Score: " + score.ToString();
+            //textScore.text = "AI Score: " + score.ToString();
             textGameScores.text = "Games Won: " + winGame.ToString();
             textGames.text = "Current Game: " + currentGame.ToString();
+            textWonTurns.text = "Won Turns: " + wonTurns.ToString();
+            textLostTurns.text = "Lost Turns: " + lostTurns.ToString();
 
             if(currentTurn % 15 == 0)
             {
@@ -248,13 +279,23 @@ public class GameRun : MonoBehaviour
    	// action -> array with the class of each card played
     private float ComputeReward(int [] deck, int [] action)
     {
-    	// First check if the action is valid given the player's deck
-    	foreach(int card in action)
-    	{
-    		deck[card]--;
-    		if(deck[card] < 0)
-    			return RWD_ACTION_INVALID;
-    	}
+        // First check if the action is valid given the player's deck
+        int[] newDeck = deck;
+        bool invalid = true;
+
+        foreach (int card in action)
+        {
+            invalid = true;
+            for(int i = 0; i < newDeck.Length; i++)
+            {
+                newDeck[i] = -1;
+                invalid = false;
+                break;
+            }
+        }
+
+        if (invalid)
+            return RWD_ACTION_INVALID;
 
 
     	// Second see who wins
