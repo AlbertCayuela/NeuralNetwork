@@ -38,6 +38,7 @@ public class GameRun : MonoBehaviour
     private UnityEngine.UI.Text textGameScores;
     private UnityEngine.UI.Text textWonTurns;
     private UnityEngine.UI.Text textLostTurns;
+    private UnityEngine.UI.Text textWinrate;
 
     private float score;
     private string reward_string;
@@ -47,6 +48,7 @@ public class GameRun : MonoBehaviour
     private float currentGame;
     private float wonTurns;
     private float lostTurns;
+    private float winRate;
 
     // Start is called before the first frame update
     void Start()
@@ -54,6 +56,7 @@ public class GameRun : MonoBehaviour
         currentGame = 1;
         wonTurns = 0;
         lostTurns = 0;
+        winRate = 0;
 
         ///////////////////////////////////////
         // Sprite management
@@ -76,6 +79,7 @@ public class GameRun : MonoBehaviour
         textGameScores = GameObject.Find("TextGames").GetComponent<UnityEngine.UI.Text>();
         textWonTurns = GameObject.Find("TextWonTurns").GetComponent<UnityEngine.UI.Text>();
         textLostTurns = GameObject.Find("TextLostTurns").GetComponent<UnityEngine.UI.Text>();
+        textWinrate = GameObject.Find("TextWinrate").GetComponent<UnityEngine.UI.Text>();
 
 
         ///////////////////////////////////////
@@ -228,6 +232,13 @@ public class GameRun : MonoBehaviour
 
                 winRounds = 0;
             }
+            
+            if(turn > 0)
+            {
+                winRate = (float)wonTurns / ((float)lostTurns + (float)wonTurns);
+                winRate = winRate * 100;
+            }
+
 
             currentTurn++;
 
@@ -239,6 +250,7 @@ public class GameRun : MonoBehaviour
             textGames.text = "Current Game: " + currentGame.ToString();
             textWonTurns.text = "Won Turns: " + wonTurns.ToString();
             textLostTurns.text = "Lost Turns: " + lostTurns.ToString();
+            textWinrate.text = "Winrate: " + winRate.ToString() + "%";
 
             if(currentTurn % 15 == 0)
             {
